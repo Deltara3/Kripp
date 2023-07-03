@@ -1,12 +1,12 @@
 use crate::chip::c8;
-use crate::SCALE;
+use crate::{SCALE, BACK, FORE};
 use macroquad::prelude::*;
 
 fn color(value: u8) -> Color {
     if value == 0 {
-        return BLACK;
+        return BACK;
     } else {
-        return WHITE;
+        return FORE;
     }
 }
 

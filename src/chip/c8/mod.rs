@@ -1,4 +1,5 @@
 use crate::{C8_W, C8_H, C8_FONT};
+use crate::chip::Quirk;
 mod opcodes;
 mod input;
 mod display;
@@ -13,14 +14,14 @@ pub struct CPU {
     sp: u8,
     st: u8,
     dt: u8,
-    halted: bool,
+    pub halted: bool,
     keypad: [bool; 16],
-    waiting: bool,
-    register: usize
+    register: usize,
+    pub quirk: Quirk
 }
 
 impl CPU {
-    pub fn new(rom: Vec<u8>) -> CPU {
+    pub fn new(rom: Vec<u8>, quirks: Quirk) -> CPU {
         let mut ram = [0; 4096];
         for value in 0..C8_FONT.len() { ram[value] = C8_FONT[value]; }
 
@@ -35,7 +36,7 @@ impl CPU {
             }
             current_address += 1;
         }
-        
+  
         return CPU {
             vram: [[0; C8_W];  C8_H],
             ram: ram,
@@ -48,8 +49,8 @@ impl CPU {
             dt: 0,
             halted: false,
             keypad: [false; 16],
-            waiting: false,
-            register: 0
+            register: 0,
+            quirk: quirks
         }
     }
 
@@ -58,25 +59,27 @@ impl CPU {
     }
 
     pub fn cycle(&mut self) {
-        if self.waiting {
+        if self.halted {
             for i in 0..self.keypad.len() {
                 if self.keypad[i] {
-                    self.waiting = false;
-                    self.v[self.register] = i as u8;
+                    // self.v[self.register] = i as u8;
+                    self.halted = false; 
                     break;
                 }
             }
         } else {
-            if self.dt > 0 {
-                self.dt -= 1;
-            }
-
-            if self.st > 0 {
-                self.st -= 1;
-            }
-
             let opcode: u16 = self.get_opcode();
             self.execute(opcode);
+        }
+    }
+
+    pub fn decrement_timers(&mut self) {
+        if self.dt > 0 {
+            self.dt -= 1;
+        }
+
+        if self.st > 0 {
+            self.st -= 1;
         }
     }
 
@@ -133,7 +136,7 @@ impl CPU {
                 (0x0F, _, 0x06, 0x05) => self.c8_fx65(x),
                 _ => self.invalid(opcode)
             }
-            self.pc += 2;
         }
+        self.pc += 2;
     }
 }

@@ -63,16 +63,25 @@ impl c8::CPU {
     /* OR Vx, Vy */
     pub fn c8_8xy1(&mut self, x: usize, y: usize) {
         self.v[x] |= self.v[y];
+        if self.quirk.vf_reset {
+            self.v[0x0F] = 0;
+        }
     }
 
     /* AND Vx, Vy */
     pub fn c8_8xy2(&mut self, x: usize, y: usize) {
         self.v[x] &= self.v[y];
+        if self.quirk.vf_reset {
+            self.v[0x0F] = 0;
+        }
     }
 
     /* XOR Vx, Vy */
     pub fn c8_8xy3(&mut self, x: usize, y: usize) {
         self.v[x] ^= self.v[y];
+        if self.quirk.vf_reset {
+            self.v[0x0F] = 0;
+        }
     }
 
     /* ADD Vx, Vy */
@@ -86,26 +95,42 @@ impl c8::CPU {
 
     /* SUB Vx, Vy */
     pub fn c8_8xy5(&mut self, x: usize, y: usize) {
-        self.v[0x0F] = if self.v[x] > self.v[y] { 1 } else { 0 };
-        self.v[x] = self.v[x].wrapping_sub(self.v[y]);
+        let (res, borrow) = self.v[x].overflowing_sub(self.v[y]);
+        self.v[x] = res;
+        self.v[0x0F] = !borrow as u8;
     }
 
     /* SHR Vx {, Vy} */
-    pub fn c8_8xy6(&mut self, x: usize, _y: usize) {
-        self.v[0x0F] = self.v[x] & 1;
-        self.v[x] >>= 1;
+    pub fn c8_8xy6(&mut self, x: usize, y: usize) {
+        let lsb = self.v[x] & 1;
+
+        if self.quirk.shifting {
+            self.v[x] >>= 1;
+        } else {
+            self.v[x] = self.v[y] >> 1;
+        }
+
+        self.v[0x0F] = lsb;
     }
 
     /* SUBN Vx, Vy */
     pub fn c8_8xy7(&mut self, x: usize, y: usize) {
-        self.v[0x0F] = if self.v[y] > self.v[x] { 1 } else { 0 };
-        self.v[x] = self.v[x].wrapping_sub(self.v[y]);
+        let (res, borrow) = self.v[y].overflowing_sub(self.v[x]);
+        self.v[x] = res;
+        self.v[0x0F] = !borrow as u8;
     }
 
     /* SHL Vx {, Vy} */
-    pub fn c8_8xye(&mut self, x: usize, _y: usize) {
-        self.v[0x0F] = (self.v[x] & 0b10000000) >> 7;
-        self.v[x] <<= 1;
+    pub fn c8_8xye(&mut self, x: usize, y: usize) {
+        let msb = (self.v[x] & 0b10000000) >> 7;
+
+        if self.quirk.shifting {
+            self.v[x] <<= 1;
+        } else {
+            self.v[x] = self.v[y] << 1;
+        }
+
+        self.v[0x0F] = msb;
     }
 
     /* SNE Vx, Vy */
@@ -133,12 +158,30 @@ impl c8::CPU {
     pub fn c8_dxyn(&mut self, x: usize, y: usize, n: usize) {
         self.v[0x0F] = 0;
         for byte in 0..n {
-            let y = (self.v[y] as usize + byte) % C8_H;
-            for bit in 0..8 {
-                let x = (self.v[x] as usize + bit) % C8_W;
-                let color = (self.ram[self.i + byte] >> (7 - bit)) & 1;
-                self.v[0x0F] |= color & self.vram[y][x];
-                self.vram[y][x] ^= color;
+            let y = if self.quirk.clipping {
+                (self.v[y] as usize % C8_H) + byte
+            } else {
+                (self.v[y] as usize + byte) % C8_H
+            };
+        
+            if self.quirk.clipping && y >= 32 {
+                continue;
+            } else {
+                for bit in 0..8 {
+                    let x = if self.quirk.clipping {
+                        (self.v[x] as usize % C8_W) + bit
+                    } else {
+                        (self.v[x] as usize + bit) % C8_W
+                    };
+
+                    if self.quirk.clipping && x >= 64 {
+                        continue;
+                    } else {
+                        let color = (self.ram[self.i + byte] >> (7 - bit)) & 1;
+                        self.v[0x0F] |= color & self.vram[y][x];
+                        self.vram[y][x] ^= color;
+                    }
+                }
             }
         }
     }
@@ -160,7 +203,7 @@ impl c8::CPU {
 
     /* LD Vx, K */
     pub fn c8_fx0a(&mut self, x: usize) {
-        self.waiting = true;
+        self.halted = true;
         self.register = x;
     }
 
@@ -197,12 +240,18 @@ impl c8::CPU {
         for i in 0..x + 1 {
             self.ram[self.i + i] = self.v[i];
         }
+        if self.quirk.memory {
+            self.i += 1;
+        }
     }
 
     /* LD Vx, [I] */
     pub fn c8_fx65(&mut self, x: usize) {
         for i in 0..x + 1 {
             self.v[i] = self.ram[self.i + i];
+        }
+        if self.quirk.memory {
+            self.i += 1;
         }
     }
 

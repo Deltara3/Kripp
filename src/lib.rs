@@ -5,7 +5,10 @@ pub const C8_H: usize = 32;
 pub const SCALE: u32 = 15;
 pub const SCR_W: u32 = (C8_W as u32) * SCALE;
 pub const SCR_H: u32 = (C8_H as u32) * SCALE;
-pub const CPF: usize = 20;
+pub const CPF: usize = 10;
+
+pub const BACK: macroquad::color::Color = macroquad::color::colors::BLACK;
+pub const FORE: macroquad::color::Color = macroquad::color::colors::WHITE;
 
 pub const C8_FONT: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -25,3 +28,4 @@ pub const C8_FONT: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0xF0,
     0xF0, 0x80, 0xF0, 0x80, 0x80
 ];
+
