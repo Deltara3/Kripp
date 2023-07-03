@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use krip::chip::cart;
 use krip::chip::c8;
-use krip::{SCR_W, SCR_H, SCALE, CPF};
+use krip::{SCR_W, SCR_H, CPF};
 
 fn conf() -> Conf {
     return Conf {
@@ -10,14 +10,6 @@ fn conf() -> Conf {
         window_width: SCR_W as i32,
         window_height: SCR_H as i32,
         ..Default::default()
-    }
-}
-
-fn color(value: u8) -> Color {
-    if value == 0 {
-        return BLACK;
-    } else {
-        return WHITE;
     }
 }
 
@@ -34,14 +26,8 @@ async fn main() {
             chip.cycle();
         }
 
-        for (y, row) in chip.vram.iter().enumerate() {
-            for (x, &col) in row.iter().enumerate() {
-                let x = (x as u32) * SCALE;
-                let y = (y as u32) * SCALE;
-                draw_rectangle(x as f32, y as f32, SCALE as f32, SCALE as f32, color(col));
-            }
-        }
-        
+        chip.draw();
+ 
         next_frame().await
     }
 }

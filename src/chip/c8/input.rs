@@ -3,21 +3,29 @@ use macroquad::input::{KeyCode, is_key_down};
 
 impl c8::CPU {
     pub fn set_buttons(&mut self) {
-        self.keypad[0x01] = is_key_down(KeyCode::Key1);
-        self.keypad[0x02] = is_key_down(KeyCode::Key2);
-        self.keypad[0x03] = is_key_down(KeyCode::Key3);
-        self.keypad[0x0C] = is_key_down(KeyCode::Key4);
-        self.keypad[0x04] = is_key_down(KeyCode::Q);
-        self.keypad[0x05] = is_key_down(KeyCode::W);
-        self.keypad[0x06] = is_key_down(KeyCode::E);
-        self.keypad[0x0D] = is_key_down(KeyCode::R);
-        self.keypad[0x07] = is_key_down(KeyCode::A);
-        self.keypad[0x08] = is_key_down(KeyCode::S);
-        self.keypad[0x09] = is_key_down(KeyCode::D);
-        self.keypad[0x0E] = is_key_down(KeyCode::F);
-        self.keypad[0x0A] = is_key_down(KeyCode::Z);
-        self.keypad[0x00] = is_key_down(KeyCode::X);
-        self.keypad[0x0B] = is_key_down(KeyCode::C);
-        self.keypad[0x0F] = is_key_down(KeyCode::V);
+        macro_rules! keypad {
+            ($($code:literal = $key:ident),+) => {
+                $( self.keypad[$code] = is_key_down(KeyCode::$key); )+
+            }
+        }
+
+        keypad! {
+            0x01 = Key1,
+            0x02 = Key2,
+            0x03 = Key3,
+            0x0C = Key4,
+            0x04 = Q,
+            0x05 = W,
+            0x06 = E,
+            0x0D = R,
+            0x07 = A,
+            0x08 = S,
+            0x09 = D,
+            0x0E = F,
+            0x0A = Z,
+            0x00 = X,
+            0x0B = C,
+            0x0F = V
+        }
     }
 }

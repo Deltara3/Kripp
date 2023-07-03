@@ -1,6 +1,7 @@
 use crate::{C8_W, C8_H, C8_FONT};
 mod opcodes;
 mod input;
+mod display;
 
 pub struct CPU {
     pub vram: [[u8; C8_W]; C8_H],
