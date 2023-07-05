@@ -48,7 +48,6 @@ impl CPU {
         let mut current_address: usize = 0x200;
         for byte in rom {
             if current_address >= 4096 {
-                println!("[FATAL] Rom supplied was too large");
                 std::process::exit(1);
             } else {
                 self.ram[current_address] = byte;
@@ -57,7 +56,20 @@ impl CPU {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.c8_00e0();
+        for mut reg in self.v {
+            reg = 0;
+        }
+        self.i = 0;
+        self.pc = 0x200;
+        self.sp = 0;
+        self.st = 0;
+        self.dt = 0;
+    }
+
     pub fn close(&mut self) {
+        self.reset();
         self.load(vec![0; 3584]);
     }
 
@@ -105,7 +117,6 @@ impl CPU {
         let y = byte.2 as usize;
 
         if !self.halted {
-            println!("[EXEC] {:#06x} at {:#06x}", opcode, self.pc);
             match byte {
                 (0x00, 0x00, 0x0E, 0x00) => self.c8_00e0(),
                 (0x00, 0x00, 0x0E, 0x0E) => self.c8_00ee(),
