@@ -1,10 +1,11 @@
 pub mod chip;
+pub mod ui;
 
 pub const C8_W: usize = 64;
 pub const C8_H: usize = 32;
 pub const SCALE: u32 = 15;
 pub const SCR_W: u32 = (C8_W as u32) * SCALE;
-pub const SCR_H: u32 = (C8_H as u32) * SCALE;
+pub const SCR_H: u32 = ((C8_H as u32) * SCALE) + 20;
 pub const CPF: usize = 10;
 
 pub const C8_FONT: [u8; 80] = [

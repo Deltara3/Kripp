@@ -17,25 +17,14 @@ pub struct CPU {
     pub halted: bool,
     keypad: [bool; 16],
     register: usize,
-    pub quirk: Quirk
+    pub quirk: Quirk,
+    pub running: bool
 }
 
 impl CPU {
-    pub fn new(rom: Vec<u8>, quirks: Quirk) -> CPU {
+    pub fn new(quirks: Quirk) -> CPU {
         let mut ram = [0; 4096];
         for value in 0..C8_FONT.len() { ram[value] = C8_FONT[value]; }
-
-        let mut current_address = 0x200;
-        for byte in rom {
-            if current_address > 0x1000 {
-                println!("[FATAL] Rom too big");
-                std::process::exit(1);
-            } else {
-                ram[current_address] = byte;
-                println!("[WRITE] {:#04x} to {:#06x}", byte, current_address);
-            }
-            current_address += 1;
-        }
   
         return CPU {
             vram: [[0; C8_W];  C8_H],
@@ -50,8 +39,26 @@ impl CPU {
             halted: false,
             keypad: [false; 16],
             register: 0,
-            quirk: quirks
+            quirk: quirks,
+            running: false
         }
+    }
+
+    pub fn load(&mut self, rom: Vec<u8>) {
+        let mut current_address: usize = 0x200;
+        for byte in rom {
+            if current_address >= 4096 {
+                println!("[FATAL] Rom supplied was too large");
+                std::process::exit(1);
+            } else {
+                self.ram[current_address] = byte;
+            }
+            current_address += 1;
+        }
+    }
+
+    pub fn close(&mut self) {
+        self.load(vec![0; 3584]);
     }
 
     fn get_opcode(&self) -> u16 {

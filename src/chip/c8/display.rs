@@ -15,8 +15,7 @@ impl c8::CPU {
         for (y, row) in self.vram.iter().enumerate() {
             for (x, &col) in row.iter().enumerate() {
                 let x = (x as u32) * SCALE;
-                let y = (y as u32) * SCALE;
-
+                let y = ((y as u32) * SCALE) + 20;
                 draw.rect_filled(
                     Rect::from_min_max(
                         Pos2::new(x as f32, y as f32),
