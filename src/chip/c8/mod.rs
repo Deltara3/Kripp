@@ -7,13 +7,13 @@ mod display;
 pub struct CPU {
     pub vram: [[u8; C8_W]; C8_H],
     ram: [u8; 4096],
-    v: [u8; 16],
+    pub v: [u8; 16],
     stack: [u16; 16],
-    i: usize,
-    pc: usize,
-    sp: u8,
-    st: u8,
-    dt: u8,
+    pub i: usize,
+    pub pc: usize,
+    pub sp: u8,
+    pub st: u8,
+    pub dt: u8,
     pub halted: bool,
     keypad: [bool; 16],
     register: usize,
@@ -58,8 +58,8 @@ impl CPU {
 
     pub fn reset(&mut self) {
         self.c8_00e0();
-        for mut reg in self.v {
-            reg = 0;
+        for index in 0..16 {
+            self.v[index] = 0;
         }
         self.i = 0;
         self.pc = 0x200;
@@ -138,7 +138,7 @@ impl CPU {
                 (0x08, _, _, 0x0E) => self.c8_8xye(x, y),
                 (0x09, _, _, 0x00) => self.c8_9xy0(x, y),
                 (0x0A, _, _, _) => self.c8_annn(nnn),
-                (0x0B, _, _, _) => self.c8_bnnn(nnn),
+                (0x0B, _, _, _) => self.c8_bnnn(nnn, x),
                 (0x0C, _, _, _) => self.c8_cxnn(x, nn),
                 (0x0D, _, _, _) => self.c8_dxyn(x, y, n),
                 (0x0E, _, 0x09, 0x0E) => self.c8_ex9e(x),

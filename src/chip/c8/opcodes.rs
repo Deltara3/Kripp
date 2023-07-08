@@ -144,8 +144,13 @@ impl c8::CPU {
     }
 
     /* JP V0, addr */
-    pub fn c8_bnnn(&mut self, nnn: usize) {
-        self.pc = (nnn + self.v[0] as usize) - 2;
+    pub fn c8_bnnn(&mut self, nnn: usize, x: usize) {
+        if self.quirk.jumping {
+            self.pc = (nnn + self.v[x] as usize) - 2;
+        } else {
+            self.pc = (nnn + self.v[0] as usize) - 2;
+        }
+
     }
 
     /* RND Vx, byte */
