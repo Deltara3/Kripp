@@ -1,10 +1,6 @@
 # Kripp
-A WIP, hopefully decent CHIP-8 and derivatives interpreter.
-## DEPRECATED IN FAVOR OF [CARBON](https://github.com/Deltara3/Carbon).
+A work in progress, terminal based multi-system emulator (hopefully).
 
-## Roadmap
-### CHIP-8
-- All opcodes implemented correctly.
-- Quirks implemented.
-- Wait for input opcode sometimes fails, mostly passes the test.
-- Sound is still not implemented.
+## Information
+- Kripp used to be a GUI based CHIP-8 interpreter, but this was replaced with Carbon.
+- I really like the name Kripp, and I love the terminal, so why not give this repo a second life?
